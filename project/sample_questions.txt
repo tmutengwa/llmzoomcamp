@@ -1,0 +1,10 @@
+1. How do I use path parameters with type hints in FastAPI?
+2. What is the recommended way to declare optional query parameters?
+3. How do I define a request body using Pydantic models?
+4. How does dependency injection work with the Depends keyword?
+5. How can I create database connections using dependencies and yield?
+6. How do I configure CORS (Cross-Origin Resource Sharing) middleware?
+7. How do I use OAuth2 with password flow and JWT tokens for security?
+8. How do I run background tasks after returning a response?
+9. How do I write asynchronous tests using AsyncClient?
+10. How do I write dependency overrides for testing?
