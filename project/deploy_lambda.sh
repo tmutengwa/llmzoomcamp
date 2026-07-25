@@ -72,14 +72,26 @@ if [ -z "$FUNCTION_EXISTS" ]; then
         --package-type Image \
         --code ImageUri=${IMAGE_URI} \
         --role ${ROLE_ARN} \
-        --timeout 60 \
-        --memory-size 1024 \
+        --timeout 120 \
+        --memory-size 2048 \
         --region ${REGION}
 else
     echo "Updating Lambda function code..."
     aws lambda update-function-code \
         --function-name ${FUNCTION_NAME} \
         --image-uri ${IMAGE_URI} \
+        --region ${REGION}
+
+    echo "Waiting for function update to complete..."
+    aws lambda wait function-updated \
+        --function-name ${FUNCTION_NAME} \
+        --region ${REGION}
+
+    echo "Updating Lambda function configuration..."
+    aws lambda update-function-configuration \
+        --function-name ${FUNCTION_NAME} \
+        --timeout 120 \
+        --memory-size 2048 \
         --region ${REGION}
 fi
 

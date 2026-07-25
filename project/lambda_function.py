@@ -8,17 +8,21 @@ assistant = FastAPIQAAssistant()
 
 def handler(event, context):
     try:
-        # 1. Parse request body
-        body_str = event.get("body", "{}")
-        if isinstance(body_str, str):
-            try:
-                params = json.loads(body_str)
-            except json.JSONDecodeError:
-                params = {}
+        # Check if parameters are passed directly in event (SDK direct invocation)
+        if "query" in event:
+            params = event
         else:
-            params = body_str
+            # Fallback to API Gateway / Function URL format (wrapped in body)
+            body_str = event.get("body", "{}")
+            if isinstance(body_str, str):
+                try:
+                    params = json.loads(body_str)
+                except json.JSONDecodeError:
+                    params = {}
+            else:
+                params = body_str
             
-        # Fallback to query string parameters if body is empty
+        # Fallback to query string parameters if body parsing yielded nothing
         if not params:
             params = event.get("queryStringParameters", {}) or {}
             
