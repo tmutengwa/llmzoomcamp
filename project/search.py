@@ -31,7 +31,7 @@ class FastAPIQAAssistant:
         if not os.path.exists(self.db_path):
             raise FileNotFoundError(f"Database not found at {self.db_path}. Please run ingest.py first.")
             
-        conn = duckdb.connect(self.db_path)
+        conn = duckdb.connect(self.db_path, read_only=True)
         # Retrieve payload columns from the schema created by dlt
         res = conn.execute("SELECT chunk_id, filename, start_line, content, embedding FROM fastapi.docs_chunks").fetchall()
         
