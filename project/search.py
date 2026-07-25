@@ -6,10 +6,12 @@ import duckdb
 import minsearch
 from embedder import Embedder
 from openai import OpenAI
-from dotenv import load_dotenv, find_dotenv
+from pathlib import Path
+from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv(find_dotenv())
+env_path = Path(__file__).resolve().parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 DB_PATH = "fastapi_docs_ingestion.duckdb"
 

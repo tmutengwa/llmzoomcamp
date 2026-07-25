@@ -3,10 +3,12 @@ import json
 import pandas as pd
 from openai import OpenAI
 from search import FastAPIQAAssistant
-from dotenv import load_dotenv, find_dotenv
+from pathlib import Path
+from dotenv import load_dotenv
 
 # Load env variables
-load_dotenv(find_dotenv())
+env_path = Path(__file__).resolve().parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 # Prompt A: Factual & Concise
 PROMPT_A = """

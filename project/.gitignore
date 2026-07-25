@@ -8,3 +8,4 @@ logs.db
 .dlt/
 models/
 data/
+.env

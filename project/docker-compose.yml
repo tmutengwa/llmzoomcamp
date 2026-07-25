@@ -9,7 +9,7 @@ services:
     ports:
       - "8501:8501"
     env_file:
-      - ../.env
+      - .env
     volumes:
       - db_data:/app
     restart: unless-stopped

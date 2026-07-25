@@ -6,7 +6,8 @@ import requests
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-from dotenv import load_dotenv, find_dotenv
+from pathlib import Path
+from dotenv import load_dotenv
 import boto3
 
 # Set page config
@@ -18,7 +19,8 @@ st.set_page_config(
 )
 
 # Load environment variables
-load_dotenv(find_dotenv())
+env_path = Path(__file__).resolve().parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 # Determine connection mode (default to SDK for secure IAM invocation)
 connection_mode = os.environ.get("CONNECTION_MODE", "sdk").lower()
