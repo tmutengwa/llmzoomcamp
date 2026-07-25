@@ -4,7 +4,7 @@
 set -e
 
 # Configuration variables (Modify these as needed)
-REGION="us-east-1"
+REGION="ap-southeast-2"
 REPO_NAME="fastapi-qa-assistant"
 FUNCTION_NAME="fastapi-qa-assistant"
 ROLE_NAME="fastapi-assistant-lambda-role"

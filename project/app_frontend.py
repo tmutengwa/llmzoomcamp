@@ -7,6 +7,7 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 from dotenv import load_dotenv, find_dotenv
+import boto3
 
 # Set page config
 st.set_page_config(
@@ -19,10 +20,23 @@ st.set_page_config(
 # Load environment variables
 load_dotenv(find_dotenv())
 
-LAMBDA_URL = os.environ.get("LAMBDA_URL")
-if not LAMBDA_URL:
-    st.sidebar.warning("⚠️ LAMBDA_URL not set in env. Defaulting to local Docker emulator (http://localhost:9000/2015-03-31/functions/function/invocations).")
-    LAMBDA_URL = "http://localhost:9000/2015-03-31/functions/function/invocations"
+# Determine connection mode (default to SDK for secure IAM invocation)
+connection_mode = os.environ.get("CONNECTION_MODE", "sdk").lower()
+
+if connection_mode == "sdk":
+    aws_region = os.environ.get("AWS_DEFAULT_REGION", "ap-southeast-2")
+    lambda_function_name = os.environ.get("LAMBDA_FUNCTION_NAME", "fastapi-qa-assistant")
+    st.sidebar.success(f"🔗 Mode: AWS SDK (boto3)\nRegion: {aws_region}\nFunction: {lambda_function_name}")
+    try:
+        lambda_client = boto3.client("lambda", region_name=aws_region)
+    except Exception as e:
+        st.sidebar.error(f"Error initializing boto3: {e}")
+else:
+    LAMBDA_URL = os.environ.get("LAMBDA_URL")
+    if not LAMBDA_URL:
+        st.sidebar.warning("⚠️ LAMBDA_URL not set in env. Defaulting to local Docker emulator (http://localhost:9000/2015-03-31/functions/function/invocations).")
+        LAMBDA_URL = "http://localhost:9000/2015-03-31/functions/function/invocations"
+    st.sidebar.success(f"🔗 Mode: HTTP\nEndpoint: {LAMBDA_URL}")
 
 # ----------------- DB Initialization & Logging -----------------
 def init_logging_db():
@@ -148,16 +162,46 @@ if page == "Chat Assistant":
                 }
                 
                 try:
-                    res = requests.post(LAMBDA_URL, json=payload)
-                    if res.status_code == 200:
-                        data = res.json()
-                        answer = data["answer"]
-                        usage = data["usage"]
-                        context_docs = data["sources"]
-                        response_time_ms = data["response_time_ms"]
+                    import json
+                    if connection_mode == "sdk":
+                        res = lambda_client.invoke(
+                            FunctionName=lambda_function_name,
+                            InvocationType="RequestResponse",
+                            Payload=json.dumps(payload)
+                        )
+                        response_payload = json.loads(res["Payload"].read().decode("utf-8"))
+                        
+                        if "FunctionError" in res:
+                            st.error(f"Lambda Execution Error: {response_payload}")
+                            st.stop()
+                            
+                        # Parse API Gateway response format
+                        status_code = response_payload.get("statusCode", 200)
+                        body_data = response_payload.get("body", "{}")
+                        if isinstance(body_data, str):
+                            data = json.loads(body_data)
+                        else:
+                            data = body_data
+                            
+                        if status_code == 200:
+                            answer = data["answer"]
+                            usage = data["usage"]
+                            context_docs = data["sources"]
+                            response_time_ms = data["response_time_ms"]
+                        else:
+                            st.error(f"Lambda returned error (status {status_code}): {data}")
+                            st.stop()
                     else:
-                        st.error(f"Error from Lambda Backend (Status Code {res.status_code}): {res.text}")
-                        st.stop()
+                        res = requests.post(LAMBDA_URL, json=payload)
+                        if res.status_code == 200:
+                            data = res.json()
+                            answer = data["answer"]
+                            usage = data["usage"]
+                            context_docs = data["sources"]
+                            response_time_ms = data["response_time_ms"]
+                        else:
+                            st.error(f"Error from Lambda Backend (Status Code {res.status_code}): {res.text}")
+                            st.stop()
                 except Exception as e:
                     st.error(f"Failed to connect to Lambda endpoint: {e}")
                     st.stop()

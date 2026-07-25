@@ -100,13 +100,25 @@ Delegates all database loading, text tokenization, and ONNX local vector calcula
    *This script creates the ECR repository, builds the `Dockerfile.lambda` container, pushes it, creates the Lambda function with 1024MB memory, and generates a public Function URL.*
 
 2. **Run the local Frontend:**
-   Configure your local environment variables in `llmzoomcamp/.env` or export them directly, then launch the lightweight frontend:
-   ```bash
-   export LAMBDA_URL="https://your-generated-lambda-function-url.lambda-url.us-east-1.on.aws/"
-   export OPENAI_API_KEY="your-key"
-   venv/bin/streamlit run app_frontend.py
-   ```
-   *You can also run the frontend inside Docker with minimal resources, mapping the `LAMBDA_URL` env variable.*
+   You can run the frontend in two ways (SDK Mode is recommended as it uses your already configured local AWS CLI credentials and bypasses any public network firewalls or SCPs):
+
+   * **Method A: SDK Mode (Recommended, Secure)**
+     Simply start the Streamlit app. It will automatically use the `boto3` client to invoke the Lambda function using your local AWS credentials:
+     ```bash
+     export CONNECTION_MODE="sdk"
+     export AWS_DEFAULT_REGION="ap-southeast-2"
+     export OPENAI_API_KEY="your-openai-key"
+     venv/bin/streamlit run app_frontend.py
+     ```
+
+   * **Method B: HTTP Mode (Function URL)**
+     Provide the Function URL explicitly:
+     ```bash
+     export CONNECTION_MODE="http"
+     export LAMBDA_URL="https://your-generated-lambda-function-url.lambda-url.ap-southeast-2.on.aws/"
+     export OPENAI_API_KEY="your-openai-key"
+     venv/bin/streamlit run app_frontend.py
+     ```
 
 ---
 
