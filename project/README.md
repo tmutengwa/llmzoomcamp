@@ -131,7 +131,7 @@ Delegates all database loading, text tokenization, and ONNX local vector calcula
 
 ---
 
-## 🎁 Extra Bonus Achievements
+## Tips to circumvent memory issues on local machine
 
 1. **AWS SDK (Boto3) Invocation:** Bypasses public internet gateways and corporate firewalls/SCPs using signed local IAM credentials.
 2. **Zero Local Memory Footprint:** Streamlit client runs in under 20MB local RAM, delegating all model weights and dataset searches to AWS.
