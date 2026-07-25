@@ -9,6 +9,14 @@ REPO_NAME="fastapi-qa-assistant"
 FUNCTION_NAME="fastapi-qa-assistant"
 ROLE_NAME="fastapi-assistant-lambda-role"
 
+# Retrieve OpenAI key from environment or local .env file
+if [ -z "$OPENAI_API_KEY" ]; then
+    if [ -f "../.env" ]; then
+        echo "Reading OPENAI_API_KEY from ../.env..."
+        OPENAI_API_KEY=$(grep -E "^OPENAI_API_KEY=" ../.env | cut -d'=' -f2-)
+    fi
+fi
+
 # Retrieve AWS Account ID
 echo "Retrieving AWS Account ID..."
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -74,7 +82,8 @@ if [ -z "$FUNCTION_EXISTS" ]; then
         --role ${ROLE_ARN} \
         --timeout 120 \
         --memory-size 2048 \
-        --region ${REGION}
+        --region ${REGION} \
+        --environment "Variables={OPENAI_API_KEY=${OPENAI_API_KEY}}"
 else
     echo "Updating Lambda function code..."
     aws lambda update-function-code \
@@ -92,7 +101,8 @@ else
         --function-name ${FUNCTION_NAME} \
         --timeout 120 \
         --memory-size 2048 \
-        --region ${REGION}
+        --region ${REGION} \
+        --environment "Variables={OPENAI_API_KEY=${OPENAI_API_KEY}}"
 fi
 
 # 7. Create Function URL for Public HTTP Access (if not exists)
