@@ -1,0 +1,10 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+fastapi_docs_ingestion.duckdb
+logs.db
+.dlt/
+models/
+data/
