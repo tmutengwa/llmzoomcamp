@@ -72,13 +72,8 @@ We evaluated the output of two different prompts using `gpt-4o-mini` as a judge 
 
 ---
 
-## 🚀 Running the Project
-
-### Prerequisites
-* Docker & Docker Compose installed.
-* An OpenAI API Key.
-
-### Steps to Run
+### Option 1: Standard Container Run (Docker Compose)
+Runs the entire stack (embeddings, database search, frontend) locally. Useful if your machine has at least 4GB of free memory.
 
 1. **Configure Environment:**
    Create a `.env` file in the **root** `llmzoomcamp/` directory (parent of `project/`) and add your OpenAI key:
@@ -86,20 +81,32 @@ We evaluated the output of two different prompts using `gpt-4o-mini` as a judge 
    OPENAI_API_KEY=your-openai-api-key-here
    ```
 
-2. **Launch with Docker Compose:**
+2. **Launch:**
    From the `project/` directory, run:
    ```bash
    docker-compose up --build
    ```
 
-3. **Verify App Startup:**
-   During the container build/startup phase, the following steps execute automatically:
-   * Downloads the ONNX model files.
-   * Runs the `ingest.py` script to fetch, chunk, embed, and load the documentation into the database.
-   * Launches the Streamlit app.
+3. **Access:** Open [http://localhost:8501](http://localhost:8501).
 
-4. **Access the Interface:**
-   Open [http://localhost:8501](http://localhost:8501) in your browser.
+### Option 2: AWS Lambda Serverless Run (Memory Friendly)
+Delegates all database loading, text tokenization, and ONNX local vector calculations to a serverless AWS Lambda function container. The local machine only runs the lightweight Streamlit UI (`app_frontend.py`), reducing memory consumption from ~800MB to under 20MB.
+
+1. **Deploy the Lambda Function:**
+   We have provided an automated deployment script `deploy_lambda.sh`. Ensure your AWS CLI is configured, then run:
+   ```bash
+   ./deploy_lambda.sh
+   ```
+   *This script creates the ECR repository, builds the `Dockerfile.lambda` container, pushes it, creates the Lambda function with 1024MB memory, and generates a public Function URL.*
+
+2. **Run the local Frontend:**
+   Configure your local environment variables in `llmzoomcamp/.env` or export them directly, then launch the lightweight frontend:
+   ```bash
+   export LAMBDA_URL="https://your-generated-lambda-function-url.lambda-url.us-east-1.on.aws/"
+   export OPENAI_API_KEY="your-key"
+   venv/bin/streamlit run app_frontend.py
+   ```
+   *You can also run the frontend inside Docker with minimal resources, mapping the `LAMBDA_URL` env variable.*
 
 ---
 

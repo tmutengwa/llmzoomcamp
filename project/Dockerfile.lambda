@@ -1,0 +1,22 @@
+FROM public.ecr.aws/lambda/python:3.12
+
+# Install system dependencies (build-essential needed for some pip installs)
+RUN dnf install -y gcc-c++ make && dnf clean all
+
+# Copy dependency configuration
+COPY pyproject.toml .
+
+# Install uv and project dependencies globally inside the container
+RUN pip install --no-cache-dir uv && uv pip install --system -r pyproject.toml
+
+# Copy model downloader, embedder, and ingestion scripts
+COPY download_model.py embedder.py ingest.py /var/task/
+
+# Bake the model and database into the image during build phase
+RUN python download_model.py && python ingest.py
+
+# Copy remaining code files into the lambda environment
+COPY . .
+
+# Set the CMD to the lambda handler function
+CMD ["lambda_function.handler"]
